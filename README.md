@@ -50,7 +50,6 @@ sensor:
     co2:
       name: "CO2 Level"      
       unit_of_measurement: "ppm"
-    self_calibration: true
     warmup_time: 60s
     update_interval: 10s
     uart_id: uart_mhz19
