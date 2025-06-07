@@ -20,14 +20,14 @@ https://robu.in/wp-content/uploads/2024/01/DataSheet-5.pdf
 
 ### Available Features:
 
- - ** Automatic baseline calibration activation/deactivation
- - ** Zero baseline calibration
- - ** Set warming up time 
+ - Automatic baseline calibration activation/deactivation
+ - Zero baseline calibration
+ - Set warming up time 
 
 ### Unavailable Features:
 
- - ** Read reference pressure value
- - ** enter reference pressure value
+ - Read reference pressure value
+ - enter reference pressure value
 
 ### Configurations
 
