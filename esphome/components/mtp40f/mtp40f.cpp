@@ -74,18 +74,20 @@ void MTP40FComponent::update() {
   }
 
   // 대기압 참조값 읽기 (동적 CRC)
-  if (this->air_pressure_reference_sensor_ != nullptr) {
-    this->last_error_ = MTP40F_OK;
-    uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x02, 0x00, 0x00, 0x01, 0x00};
-    cmd[8] = mtp40f_checksum_(cmd, 8) & 0xFF;
-    ESP_LOGD(TAG, "Sending Air Pressure Reference command: %02X %02X ... %02X", cmd[0], cmd[1], cmd[8]);
-    if (!this->mtp40f_request_(cmd, 9, this->response_buffer_, 11)) {
-      ESP_LOGW(TAG, "Failed to read Air Pressure Reference from MTP40F! Last error: 0x%04X", this->last_error_);
-    } else {
-      uint16_t air_pressure_ref = (this->response_buffer_[7] << 8) | this->response_buffer_[8];
-      ESP_LOGD(TAG, "MTP40F Received Air Pressure Reference=%u hPa", air_pressure_ref);
-      this->air_pressure_reference_sensor_->publish_state(air_pressure_ref);
-    }
+if (this->air_pressure_reference_sensor_ != nullptr) {
+  this->last_error_ = MTP40F_OK;
+  uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00};
+  uint16_t checksum = 0;
+  for (int i = 0; i < 7; i++) checksum += cmd[i];
+  cmd[7] = checksum >> 8;
+  cmd[8] = checksum & 0xFF;
+  ESP_LOGD(TAG, "Sending Air Pressure Reference command: %02X %02X ... %02X %02X", cmd[0], cmd[1], cmd[7], cmd[8]);
+  if (!this->mtp40f_request_(cmd, 9, this->response_buffer_, 11)) {
+    ESP_LOGW(TAG, "Failed to read Air Pressure Reference from MTP40F! Last error: 0x%04X", this->last_error_);
+  } else {
+    uint16_t air_pressure_ref = (this->response_buffer_[7] << 8) | this->response_buffer_[8];
+    ESP_LOGD(TAG, "MTP40F Received Air Pressure Reference=%u hPa", air_pressure_ref);
+    this->air_pressure_reference_sensor_->publish_state(air_pressure_ref);
   }
 }
 // 외부 기압값
