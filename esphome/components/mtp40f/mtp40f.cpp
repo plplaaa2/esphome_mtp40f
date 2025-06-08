@@ -88,7 +88,7 @@ void MTP40FComponent::update() {
     }
   }
 }
-// 기압값 설정
+// 외부 기압값
 void MTP40FComponent::set_external_air_pressure_sensor(sensor::Sensor *sensor) {
   this->external_air_pressure_sensor_ = sensor;
   if (sensor != nullptr) {
@@ -103,20 +103,29 @@ void MTP40FComponent::on_external_air_pressure_update(float pressure_hpa) {
     this->set_air_pressure_reference(static_cast<uint16_t>(pressure_hpa));
   }
 }
-
-void esphome::mtp40f::MTP40FComponent::set_air_pressure_reference(uint16_t hpa) {
-  ESP_LOGD(TAG, "Setting Air Pressure Reference to %u hPa", hpa);
-  this->last_error_ = MTP40F_OK;
-  uint8_t cmd[13] = {0x42, 0x4D, 0xA0, 0x00, 0x05, 0x00,
-                     static_cast<uint8_t>(hpa >> 8), static_cast<uint8_t>(hpa & 0xFF),
-                     0x00, 0x00, 0x01, 0x00, 0x00};
-  uint16_t crc = mtp40f_checksum_(cmd, 11);
-  cmd[11] = crc >> 8;
-  cmd[12] = crc & 0xFF;
-
-  if (!this->mtp40f_request_(cmd, 13, this->response_buffer_, 10)) {
-    ESP_LOGW(TAG, "Failed to set Air Pressure Reference! Last error: 0x%04X", this->last_error_);
+// 기압 값 설정
+void MTP40FComponent::set_air_pressure_reference(uint16_t hpa) {
+  if (hpa < 700 || hpa > 1100) {
+    ESP_LOGW(TAG, "Pressure value %u hPa out of range (700-1100)", hpa);
+    return;
   }
+  ESP_LOGD(TAG, "Setting Air Pressure Reference to %u hPa", hpa);
+
+  uint8_t cmd[11] = {
+      0x42, 0x4D, 0xA0,
+      0x00, 0x01,        // Command
+      0x00, 0x02,        // Data length
+      static_cast<uint8_t>(hpa >> 8), static_cast<uint8_t>(hpa & 0xFF), // Pressure (big endian)
+      0x00, 0x00         // Checksum placeholder
+  };
+  // Checksum of first 9 bytes
+  uint16_t crc = 0;
+  for (int i = 0; i < 9; i++) crc += cmd[i];
+  cmd[9] = crc >> 8;
+  cmd[10] = crc & 0xFF;
+
+  // 전송, 응답 길이는 데이터시트 참고(없으면 0)
+  this->mtp40f_request_(cmd, 11, this->response_buffer_, 0);
 }
 // 400ppm 보정(제로베이스)
 void MTP40FComponent::calibrate_400ppm() {
