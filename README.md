@@ -24,12 +24,8 @@ https://robu.in/wp-content/uploads/2024/01/DataSheet-5.pdf
 
  - Automatic baseline calibration activation/deactivation
  - Zero baseline calibration
- - Set warming up time 
-
-### Unavailable Features:
-
- - Read reference pressure value
- - enter reference pressure value
+ - Set warming up time
+ - Set reference external pressure value
 
 ### Configurations
 
