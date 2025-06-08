@@ -30,6 +30,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   // Self calibration 및 400ppm 보정
   void enable_self_calibration();
   void disable_self_calibration();
+  void read_self_calibration_status(); 
   void calibrate_400ppm();
 
   // 파라미터
