@@ -47,11 +47,13 @@ sensor:
     id: mtp40f_component
     co2:
       name: "CO2 Level"      
-      unit_of_measurement: "ppm"
+      unit_of_measurement: "ppm"  
     air_pressure_reference:
       name: "Air Pressure Reference"
       unit_of_measurement: hPa
       device_class: pressure
+    #self_calibration: true    #(option) bootup setting
+    external_air_pressure: air_pressure   #(option) Reference external pressure sensor
     warmup_time: 60s
     update_interval: 10s
     uart_id: uart_mhz19
