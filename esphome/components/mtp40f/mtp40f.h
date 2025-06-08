@@ -25,6 +25,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   // 센서 설정
   void set_co2_sensor(sensor::Sensor *co2_sensor) { co2_sensor_ = co2_sensor; }
   void set_air_pressure_reference_sensor(sensor::Sensor *air_pressure_reference_sensor) { air_pressure_reference_sensor_ = air_pressure_reference_sensor; }
+  void set_air_pressure_reference(uint16_t hpa);
 
   // Self calibration 및 400ppm 보정
   void enable_self_calibration();
@@ -54,6 +55,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   int last_error_{MTP40F_OK};
   uint8_t response_buffer_[20];
 };
+
 
 // Switch class for self calibration ON/OFF
 class MTP40FSelfCalibrationSwitch : public switch_::Switch, public Component {
