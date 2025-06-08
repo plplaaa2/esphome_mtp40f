@@ -99,7 +99,7 @@ void MTP40FComponent::set_external_air_pressure_sensor(sensor::Sensor *sensor) {
 }
 // 외부 기압값 읽기
 void MTP40FComponent::on_external_air_pressure_update(float pressure_hpa) {
-  if (pressure_hpa > 500 && pressure_hpa < 1200) { // 현실적인 범위 체크
+  if (pressure_hpa > 700 && pressure_hpa < 1100) { // 현실적인 범위 체크
     this->set_air_pressure_reference(static_cast<uint16_t>(pressure_hpa));
   }
 }
