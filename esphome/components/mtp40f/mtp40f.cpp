@@ -88,7 +88,21 @@ void MTP40FComponent::update() {
     }
   }
 }
-
+// 기압값 설정
+void MTP40FComponent::set_external_air_pressure_sensor(sensor::Sensor *sensor) {
+  this->external_air_pressure_sensor_ = sensor;
+  if (sensor != nullptr) {
+    sensor->add_on_state_callback([this](float state) {
+      this->on_external_air_pressure_update(state);
+    });
+  }
+}
+// 외부 기압값 읽기
+void MTP40FComponent::on_external_air_pressure_update(float pressure_hpa) {
+  if (pressure_hpa > 500 && pressure_hpa < 1200) { // 현실적인 범위 체크
+    this->set_air_pressure_reference(static_cast<uint16_t>(pressure_hpa));
+  }
+}
 // 400ppm 보정(제로베이스)
 void MTP40FComponent::calibrate_400ppm() {
   ESP_LOGD(TAG, "Calibrating MTP40F sensor to 400ppm (zero calibration, single point).");
