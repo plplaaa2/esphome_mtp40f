@@ -36,8 +36,6 @@ CONFIG_SCHEMA = (
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
             cv.Optional(CONF_EXTERNAL_AIR_PRESSURE): cv.use_id(sensor.Sensor),
-        
-            ),
             cv.Optional(CONF_AIR_PRESSURE_REFERENCE): sensor.sensor_schema(
                 unit_of_measurement=UNIT_HECTOPASCAL,
                 icon="mdi:gauge",
@@ -65,10 +63,11 @@ async def to_code(config):
     if CONF_AIR_PRESSURE_REFERENCE in config:
         sens = await sensor.new_sensor(config[CONF_AIR_PRESSURE_REFERENCE])
         cg.add(var.set_air_pressure_reference_sensor(sens))
-     if CONF_EXTERNAL_AIR_PRESSURE in config:
-        sens = await cg.get_variable(config[CONF_EXTERNAL_AIR_PRESSURE])
 
-    cg.add(var.set_external_air_pressure_sensor(sens))
+    if CONF_EXTERNAL_AIR_PRESSURE in config:
+        sens = await cg.get_variable(config[CONF_EXTERNAL_AIR_PRESSURE])
+        cg.add(var.set_external_air_pressure_sensor(sens))
+
     cg.add(var.set_self_calibration_enabled(config[CONF_SELF_CALIBRATION]))
     cg.add(var.set_warmup_seconds(config[CONF_WARMUP_TIME].total_seconds))
 
