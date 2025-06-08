@@ -34,6 +34,8 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   // 파라미터
   void set_self_calibration_enabled(bool enabled) { self_calibration_ = enabled; }
   void set_warmup_seconds(uint32_t seconds) { warmup_seconds_ = seconds; }
+  void set_external_air_pressure_sensor(sensor::Sensor *sensor);
+  void on_external_air_pressure_update(float pressure_hpa);
 
   // 디버깅
   int get_last_error() { return last_error_; }
@@ -44,6 +46,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
 
   sensor::Sensor *co2_sensor_{nullptr};
   sensor::Sensor *air_pressure_reference_sensor_{nullptr};
+  sensor::Sensor *external_air_pressure_sensor_{nullptr};
   bool self_calibration_{true};
   uint32_t warmup_seconds_{60};
   uint32_t last_update_time_{0};
