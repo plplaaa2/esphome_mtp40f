@@ -56,7 +56,7 @@ sensor:
     external_air_pressure: air_pressure   #(option) Reference external pressure sensor
     warmup_time: 60s
     update_interval: 10s
-    uart_id: uart_mhz19
+    uart_id: uart_mtp40f
 
 switch:
   - platform: mtp40f
