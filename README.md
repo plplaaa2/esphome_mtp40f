@@ -2,6 +2,8 @@
 
 This ESPhome component is designed for using the Tuya CO2 sensor with ESPhome.
 
+This component was created using AI.
+
 ## Custom Components
 
 ### mtp40f
