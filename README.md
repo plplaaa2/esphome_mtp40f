@@ -35,7 +35,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/plplaaa2/esphome_mtp40f
-      ref: dev
+      ref: main
     components: [ mtp40f ]
 ```
 
