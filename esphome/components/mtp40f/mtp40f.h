@@ -25,15 +25,19 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   // 센서 설정
   void set_co2_sensor(sensor::Sensor *co2_sensor) { co2_sensor_ = co2_sensor; }
   void set_air_pressure_reference_sensor(sensor::Sensor *air_pressure_reference_sensor) { air_pressure_reference_sensor_ = air_pressure_reference_sensor; }
+  void set_air_pressure_reference(uint16_t hpa);
 
   // Self calibration 및 400ppm 보정
   void enable_self_calibration();
   void disable_self_calibration();
+  void read_self_calibration_status(); 
   void calibrate_400ppm();
 
   // 파라미터
   void set_self_calibration_enabled(bool enabled) { self_calibration_ = enabled; }
   void set_warmup_seconds(uint32_t seconds) { warmup_seconds_ = seconds; }
+  void set_external_air_pressure_sensor(sensor::Sensor *sensor);
+  void on_external_air_pressure_update(float pressure_hpa);
 
   // 디버깅
   int get_last_error() { return last_error_; }
@@ -44,6 +48,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
 
   sensor::Sensor *co2_sensor_{nullptr};
   sensor::Sensor *air_pressure_reference_sensor_{nullptr};
+  sensor::Sensor *external_air_pressure_sensor_{nullptr};
   bool self_calibration_{true};
   uint32_t warmup_seconds_{60};
   uint32_t last_update_time_{0};
@@ -51,6 +56,7 @@ class MTP40FComponent : public PollingComponent, public uart::UARTDevice {
   int last_error_{MTP40F_OK};
   uint8_t response_buffer_[20];
 };
+
 
 // Switch class for self calibration ON/OFF
 class MTP40FSelfCalibrationSwitch : public switch_::Switch, public Component {

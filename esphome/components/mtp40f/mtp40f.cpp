@@ -76,9 +76,12 @@ void MTP40FComponent::update() {
   // 대기압 참조값 읽기 (동적 CRC)
   if (this->air_pressure_reference_sensor_ != nullptr) {
     this->last_error_ = MTP40F_OK;
-    uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x02, 0x00, 0x00, 0x01, 0x00};
-    cmd[8] = mtp40f_checksum_(cmd, 8) & 0xFF;
-    ESP_LOGD(TAG, "Sending Air Pressure Reference command: %02X %02X ... %02X", cmd[0], cmd[1], cmd[8]);
+    uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00};
+    uint16_t checksum = 0;
+    for (int i = 0; i < 7; i++) checksum += cmd[i];
+    cmd[7] = checksum >> 8;
+    cmd[8] = checksum & 0xFF;
+    ESP_LOGD(TAG, "Sending Air Pressure Reference command: %02X %02X ... %02X %02X", cmd[0], cmd[1], cmd[7], cmd[8]);
     if (!this->mtp40f_request_(cmd, 9, this->response_buffer_, 11)) {
       ESP_LOGW(TAG, "Failed to read Air Pressure Reference from MTP40F! Last error: 0x%04X", this->last_error_);
     } else {
@@ -87,6 +90,48 @@ void MTP40FComponent::update() {
       this->air_pressure_reference_sensor_->publish_state(air_pressure_ref);
     }
   }
+}  // ← 반드시 update 함수 끝에 이 중괄호!
+
+// 외부 기압값
+void MTP40FComponent::set_external_air_pressure_sensor(sensor::Sensor *sensor) {
+  this->external_air_pressure_sensor_ = sensor;
+  if (sensor != nullptr) {
+    sensor->add_on_state_callback([this](float state) {
+      this->on_external_air_pressure_update(state);
+    });
+  }
+}
+
+// 외부 기압값 읽기
+void MTP40FComponent::on_external_air_pressure_update(float pressure_hpa) {
+  if (pressure_hpa > 700 && pressure_hpa < 1100) { // 현실적인 범위 체크
+    this->set_air_pressure_reference(static_cast<uint16_t>(pressure_hpa));
+  }
+}
+
+// 기압 값 설정
+void MTP40FComponent::set_air_pressure_reference(uint16_t hpa) {
+  if (hpa < 700 || hpa > 1100) {
+    ESP_LOGW(TAG, "Pressure value %u hPa out of range (700-1100)", hpa);
+    return;
+  }
+  ESP_LOGD(TAG, "Setting Air Pressure Reference to %u hPa", hpa);
+
+  uint8_t cmd[11] = {
+      0x42, 0x4D, 0xA0,
+      0x00, 0x01,        // Command
+      0x00, 0x02,        // Data length
+      static_cast<uint8_t>(hpa >> 8), static_cast<uint8_t>(hpa & 0xFF), // Pressure (big endian)
+      0x00, 0x00         // Checksum placeholder
+  };
+  // Checksum of first 9 bytes
+  uint16_t crc = 0;
+  for (int i = 0; i < 9; i++) crc += cmd[i];
+  cmd[9] = crc >> 8;
+  cmd[10] = crc & 0xFF;
+
+  // 전송, 응답 길이는 데이터시트 참고(없으면 0)
+  this->mtp40f_request_(cmd, 11, this->response_buffer_, 0);
 }
 
 // 400ppm 보정(제로베이스)
@@ -99,6 +144,30 @@ void MTP40FComponent::calibrate_400ppm() {
   cmd[12] = crc & 0xFF;
   if (!this->mtp40f_request_(cmd, 13, this->response_buffer_, 10)) {
     ESP_LOGW(TAG, "Failed to calibrate 400ppm! Last error: 0x%04X", this->last_error_);
+  }
+}
+
+// 자기보정 상태 읽기
+void MTP40FComponent::read_self_calibration_status() {
+  uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00};
+  uint16_t checksum = 0;
+  for (int i = 0; i < 7; i++) checksum += cmd[i];
+  cmd[7] = checksum >> 8;
+  cmd[8] = checksum & 0xFF;
+
+  uint8_t resp[10];
+  if (!this->mtp40f_request_(cmd, 9, resp, 10)) {
+    ESP_LOGW(TAG, "Failed to read self-calibration status!");
+    return;
+  }
+
+  uint8_t sc_state = resp[7];
+  if (sc_state == 0x01) {
+    ESP_LOGI(TAG, "Self-calibration is ENABLED.");
+  } else if (sc_state == 0x00) {
+    ESP_LOGI(TAG, "Self-calibration is DISABLED.");
+  } else {
+    ESP_LOGW(TAG, "Unknown self-calibration state: 0x%02X", sc_state);
   }
 }
 
