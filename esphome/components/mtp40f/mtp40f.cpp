@@ -147,6 +147,30 @@ void MTP40FComponent::calibrate_400ppm() {
   }
 }
 
+// 자기보정 상태 읽기
+void MTP40FComponent::read_self_calibration_status() {
+  uint8_t cmd[9] = {0x42, 0x4D, 0xA0, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00};
+  uint16_t checksum = 0;
+  for (int i = 0; i < 7; i++) checksum += cmd[i];
+  cmd[7] = checksum >> 8;
+  cmd[8] = checksum & 0xFF;
+
+  uint8_t resp[10];
+  if (!this->mtp40f_request_(cmd, 9, resp, 10)) {
+    ESP_LOGW(TAG, "Failed to read self-calibration status!");
+    return;
+  }
+
+  uint8_t sc_state = resp[7];
+  if (sc_state == 0x01) {
+    ESP_LOGI(TAG, "Self-calibration is ENABLED.");
+  } else if (sc_state == 0x00) {
+    ESP_LOGI(TAG, "Self-calibration is DISABLED.");
+  } else {
+    ESP_LOGW(TAG, "Unknown self-calibration state: 0x%02X", sc_state);
+  }
+}
+
 void MTP40FComponent::enable_self_calibration() {
   ESP_LOGD(TAG, "Enabling self-calibration on MTP40F...");
   this->last_error_ = MTP40F_OK;
