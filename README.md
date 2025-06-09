@@ -14,7 +14,7 @@ This sensor is used with the Tuya CO2 sensor.
 
 Comparison with MHZ-19 
 
-No temperature sensor, uses pressure value as a supplementary indicator
+This sensor uses a single-beam method and can be automatically or manually calibrated based on its own measured temperature and external pressure values (defaulting to 1015 hPa if unavailable). However, unlike the Mh-z19, it does not have a function to display its internal temperature sensor value.
 
 ### datasheet
 
