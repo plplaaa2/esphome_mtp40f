@@ -34,7 +34,7 @@ https://robu.in/wp-content/uploads/2024/01/DataSheet-5.pdf
 external_components:
   - source:
       type: git
-      url: https://github.com/plplaaa2/esphome_mtp40f
+      url: https://github.com/plplaaa2/esphome_ex
       ref: main
     components: [ mtp40f ]
 ```
